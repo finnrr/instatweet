@@ -1,0 +1,19 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[dev-packages]
+
+[packages]
+gunicorn = "==20.0.4"
+instagram-explore = "==0.3.0"
+numpy = "==1.18.1"
+opencv-contrib-python = "==4.1.2.30"
+requests = "==2.22.0"
+Flask = "==1.1.2"
+GetOldTweets3 = "==0.0.11"
+Pillow = "==7.0.0"
+
+[requires]
+python_version = "3.7"
