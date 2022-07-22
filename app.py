@@ -6,34 +6,25 @@ from io import BytesIO
 import numpy as np
 import cv2 
 import io
-#import cvlib as cv
-#import freetype
+# import cvlib as cv
+# import freetype
 from PIL import Image, ImageFont, ImageDraw, ImageEnhance
-#import textwrap
-
-
-
-
-
-
-
-
+# import textwrap
 import base64
 from io import BytesIO
-
-
 from flask import Flask, render_template, request, jsonify
 
+# initalize app
 app = Flask(__name__, template_folder='templates')
 
-
-
+# get urls of images from instagram
 def get_instagram_urls(search_term: str):
     ''' fetch a list of instagram pictures urls based on seach term '''
-    #res = ie.tag(search_term)
-    #data, cursor = ie.tag('donald', res.cursor)
+    #test
+    #data, cursor = ie.tag('simon', res.cursor)
     return ie.tag_images(search_term).data[:5]
 
+# remove artifacts from tweet string
 def clean_tweet(tweet_text):
     ''' clean the tweets of links, hashtags and @ tags, return first sentence '''
     result = re.sub(r"http\S+", "", tweet_text)
@@ -44,6 +35,7 @@ def clean_tweet(tweet_text):
     result = result.capitalize()
     return result
 
+# get tweets from user input
 def get_tweets(search_term: str, num_of_tweets=10):
     ''' fetch a list of tweets '''
     tweetCriteria = got.manager.TweetCriteria().setQuerySearch(search_term).setMaxTweets(num_of_tweets+20)
@@ -58,9 +50,10 @@ def get_tweets(search_term: str, num_of_tweets=10):
         if iterration + 1 >= len(tweets):
             break   
     return tweet_list
+# test    
+# get_tweets('rocket')
 
-#get_tweets('hobos')
-
+# pull image from url
 def url_to_cv(url):
     response = requests.get(url)
     response.content
@@ -69,6 +62,7 @@ def url_to_cv(url):
    # image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     return image
 
+# fit image into comic pane
 def resize_image(image, width=720):
     ''' resize image by width '''
     scale_percent = image.shape[1] / width
@@ -76,16 +70,17 @@ def resize_image(image, width=720):
     dim = (width, height)
     return cv2.resize(image, dim, interpolation = cv2.INTER_AREA)
  
-
+### testing out image manipulation
 # import matplotlib.pyplot as plt 
 # results[1]
 # image = np.array(results[1]) 
 # # Convert RGB to BGR 
 # open_cv_image = open_cv_image[:, :, ::-1].copy() 
-
 # plt.imshow(resize_image(image))
 # resize_image(image).shape
+###
 
+# place text next to faces (currently placing at top left)
 def coords_from_cv(image):
 #    faces, confidences = cv.detect_face(image)
 #    coords = []
@@ -95,6 +90,7 @@ def coords_from_cv(image):
 #        coords = (0,0)
     return (0,0) #coords
 
+# transform image to look like a watercolor comic
 def reduce_colors(image):
     Z = image.reshape((-1,3))
     Z = np.float32(Z)
@@ -110,10 +106,12 @@ def reduce_colors(image):
     cartoon = cv2.bitwise_and(res2, res2, mask=edges)
     return cartoon
 
+# turn data into image
 def cv_to_pil(image):
     image = image[:,:,::-1]
     return Image.fromarray(image)
 
+# draw text onto the image
 def draw_text(tweet,image,coords):
     font = ImageFont.truetype("comicfont.ttf")
     text_size = font.getsize(tweet)
@@ -125,6 +123,7 @@ def draw_text(tweet,image,coords):
     return image
 
 
+#bubbles around text
 
 # lines = textwrap.wrap(text, width=40)
 # y_text = h
@@ -133,17 +132,16 @@ def draw_text(tweet,image,coords):
 #     draw.text(((w - width) / 2, y_text), line, font=font, fill=FOREGROUND)
 #     y_text += height
 
-
-
-
-
+# pull media from instagram and twitter
 def fetch_media(search_term):
     urls = get_instagram_urls(search_term)
     tweets = get_tweets(search_term, 5)
     return urls, tweets
 
-# media = fetch_media('hobos')
+# test
+# media = fetch_media('ducks')
 
+# build a single comic from the results
 def crunch_comic(search_results, itteration=0):
     tweets = search_results[1]
     urls = search_results[0]
@@ -159,7 +157,7 @@ def crunch_comic(search_results, itteration=0):
 
 # crunch_comic(media, 4)
 
-
+# build 4 panels for the comic
 def comic_strip(search_term):
     results =  fetch_media(search_term)
     panel_0 = crunch_comic(results,0)
@@ -168,11 +166,12 @@ def comic_strip(search_term):
     panel_3 = crunch_comic(results,3)
     return panel_0, panel_1, panel_2, panel_3
 
-
+# webpage: homepage
 @app.route('/', methods=['GET', 'POST'])
 def index():
     return render_template('index.html')
 
+# webpage: results page
 @app.route('/result', methods=['GET', 'POST'])
 def result():
     args = request.form
@@ -208,7 +207,7 @@ def result():
     #     return render(request, 'index.html', args)
 
 
-
+# run the webapp
 if __name__ == '__main__':
     app.run(port=8080, debug=True)
 
@@ -217,9 +216,9 @@ if __name__ == '__main__':
 # pic1, pic2, pic3, pic4 = comic_strip('stuff')
 
 
-#todo
+# todo
 
-# results = comic_strip('iran')
+# results = comic_strip('jordan')
 # results[0]
 # results[1]
 # results[2]
